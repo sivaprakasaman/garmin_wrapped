@@ -54,14 +54,30 @@ read_fit <- function(fit_file) {
   fit <- readFitFile(fit_file)
   
   # Extract relevant information using records
-  records <- fit$records
-  pace <- records$Speed
-  distance <- records$Distance
-  time <- records$Timestamp
+  fit_allrecords <- records(fit) %>% 
+    bind_rows() %>% 
+    arrange(timestamp) 
   
+  distance <- fit_allrecords$distance
+  distance <- distance/1609.34; #to mi
+  distance_shift <- c(0,distance)
+  distance_shift <- distance_shift[1:length(distance_shift)-1];
+    
+  time_absolute <- as.POSIXct(fit_allrecords$timestamp);
+  t_vect <- as.numeric(time_absolute);
+  time <- t_vect-min(t_vect);
+  time_shift <- c(0,time);
+  time_shift <- time_shift[1:length(time_shift)-1];
+  
+  dx <- distance-distance_shift; #delta position
+  dt <- time-time_shift;
+  
+  #in mi/s
+  pace <- dx/dt;
+  pace <- 1/(pace*60);
+
   # Create a data frame
-  data <- data.frame(Time = as.POSIXct(time), Distance = distance, Pace = pace)
-  
+  data <- data.frame(Time = time, Distance = distance, Pace = pace, Lat = fit_allrecords$position_lat, Lon = fit_allrecords$position_long)
   return(data)
 }
 
@@ -94,5 +110,14 @@ ggplot(fitness_data, aes(x = Lon, y = Lat)) +
   coord_quickmap() +
   geom_point(aes(colour = fitness_data$Distance))
 
+coords <- cbind(fitness_data$Lon,fitness_data$Lat)
+
+m <- coords %>% 
+  leaflet(  ) %>%
+  addTiles() %>%
+  addPolylines(color = 'red')
+
+m
 
 setwd(cwd)
+
