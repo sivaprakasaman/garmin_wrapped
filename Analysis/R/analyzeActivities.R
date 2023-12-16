@@ -36,5 +36,32 @@ plot_dist <- ggplot(hr_present, aes(x=Avg.Pace,y=Avg.HR))
 plot_dist <- plot_dist+geom_point(alpha=0.5, aes(colour = Avg.HR))
 print(plot_dist)
 
+line<-par(lwd=2)
+h_dist = hist(running_only$Distance, xlab = "Distance (Mi)",ylab = "Count", freq = TRUE,col ="darkgoldenrod",main = paste("Distribution of Distance Run | N =", toString(length(running_only$Distance)), "Runs"))
+text(h_dist$mids,h_dist$counts,labels=h_diste$counts, adj=c(0.5, -0.5), cex = 1.5)
+# axis(side=1, at=c(0,18,35,60,90), labels=c(0,18,35,60,90))
+
+
+p <- running_only %>%
+  ggplot( aes(x=Distance)) +
+  geom_histogram( binwidth=1, fill="#69b3a2", color="#e9ecef", alpha=0.85) +
+  ggtitle("Bin size = 1") +
+  theme(
+    plot.title = element_text(size=15)
+  ) +
+  scale_x_continuous(breaks = scales::pretty_breaks(n = 20))
+
+p
+
+p2 <- running_only %>%
+  ggplot( aes(x=Distance)) +
+  geom_histogram(  breaks = c(0,1,3,6,10,15,26), fill="#69b3a2", color="#e9ecef", alpha=0.85) +
+  ggtitle("Bin size = 1") +
+  theme(
+    plot.title = element_text(size=15)
+  ) +
+  scale_x_continuous(breaks = scales::pretty_breaks(n = 20))
+
 
 setwd(cwd);
+
