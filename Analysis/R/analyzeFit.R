@@ -5,7 +5,7 @@ setwd(data_dir);
 
 
 ## Installing Dependencies & Importing Libraries
-list.of.packages <- c('ggplot2', 'leaflet', 'ggmap','remotes','dplyr','purrr','PerformanceAnalytics','nloptr','lme4','lubridate')
+list.of.packages <- c('ggplot2', 'leaflet', 'ggmap','remotes','dplyr','purrr','PerformanceAnalytics','nloptr','lme4','lubridate','revgeo','maps')
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages)
 
@@ -23,15 +23,17 @@ lapply(list.of.packages,library, character.only=TRUE)
 
 # Function to remove outliers from a numeric vector using Z-score
 remove_outliers <- function(x, threshold = 3) {
+  x[is.infinite(x)] <- 0
   z_scores <- abs(scale(x))
-  outliers <- which(z_scores > threshold)
+  outliers <- which(z_scores > threshold);
+  non_outliers <- which(z_scores < threshold);
   
   for (i in outliers) {
     # Find the indices of the 5 nearest non-outlier points
-    nearest_non_outliers <- order(abs(outliers - i))[1:5]
+    nearest_non_outliers <- order(abs(non_outliers - i))[1:5];
     
     # Interpolate the outlier value based on the average of the nearest non-outlier points
-    x[i] <- mean(x[nearest_non_outliers], na.rm = TRUE)
+    x[i] <- mean(x[non_outliers[nearest_non_outliers]], na.rm = TRUE)
   }
   
   return(x)
@@ -48,28 +50,56 @@ read_tcx <- function(tcx_file) {
   tcx <- readTCX(tcx_file, distanceunit = 'm')
   
   # Extract relevant information
-  distance <- tcx$distance
-  distance <- distance/1609.34; #to mi
-  distance_shift <- c(0,distance)
+  Distance <- tcx$distance
+  Distance <- Distance/1609.34; #to mi
+  distance_shift <- c(0,Distance)
   distance_shift <- distance_shift[1:length(distance_shift)-1];
   
   time_absolute <- as.POSIXct(tcx$time);
   t_vect <- as.numeric(time_absolute);
-  time <- t_vect-min(t_vect);
-  time_shift <- c(0,time);
+  Time <- t_vect-min(t_vect);
+  time_shift <- c(0,Time);
   time_shift <- time_shift[1:length(time_shift)-1];
   
-  dx <- distance-distance_shift; #delta position
-  dt <- time-time_shift;
+  dx <- Distance-distance_shift; #delta position
+  dt <- Time-time_shift;
   
   #in mi/s
-  pace <- dx/dt;
-  pace <- 1/(pace*60);
+  Pace <- dx/dt;
+  Pace <- 1/(Pace*60);
+  
+  #Elevation
+  Elevation = tcx$altitude*3.28084; #to feet
   
   # Create a data frame
-  data <- data.frame(Time = time, Distance = distance, Pace = pace, Lat = tcx$latitude, Lon = tcx$longitude)
+  data <- data.frame(time = Time, distance = Distance, avg_pace = mean(Pace), lat = tcx$latitude, lon = tcx$longitude, elevation = Elevation)
   
-  return(data)
+  # Summary data, assume activities with gpx or text data are running
+  
+  elev_gainloss = calculate_elevation_gain_smoothed(Elevation,window_size = 10);
+  elev_gainloss2 = calculate_elevation_gain_smoothed(Elevation,window_size = 20);
+  elev_gainloss3 = calculate_elevation_gain_smoothed(Elevation,window_size = 40);
+  elev_gainloss4 = calculate_elevation_gain_smoothed(Elevation,window_size = 60);
+  elev_gainloss5 = calculate_elevation_gain_smoothed(Elevation,window_size = 80);
+  
+  meta_data <- data.frame(activity = activity_type, total_Ascent = elev_gainloss[[1]], total_Descent = elev_gainloss[[2]]);
+  
+  #Being lazy here...just trying to figure out a good smoothing parameter for later
+  meta_data$total_Ascent2 <- elev_gainloss2[[1]]
+  meta_data$total_Descent2 <- elev_gainloss2[[2]]
+  meta_data$total_Ascent3 <- elev_gainloss3[[1]]
+  meta_data$total_Descent3 <- elev_gainloss3[[2]]
+  meta_data$total_Ascent4 <- elev_gainloss4[[1]]
+  meta_data$total_Descent4 <- elev_gainloss4[[2]]
+  meta_data$total_Ascent5 <- elev_gainloss5[[1]]
+  meta_data$total_Descent5 <- elev_gainloss5[[2]]
+  
+  meta_data$state <- map.where(database="state", tcx$longitude[1], tcx$latitude[1])
+  meta_data$county <- map.where(database="county", tcx$longitude[1], tcx$latitude[1])
+  
+  out = list(data,meta_data);
+  
+  return(out)
 }
 
 # Function to extract information from FIT file using FITFileR
@@ -83,7 +113,13 @@ read_fit <- function(fit_file) {
   
   sport_msg = getMessagesByType(fit,'sport');
   activity_type = sport_msg[[2]];
+  
+  if(tolower(activity_type) != "running"){
+    print(paste('Activity Type: ', activity_type,'-- Skipping'))
+    return()
+  }
     
+  
   Distance <- fit_allrecords$distance
   Distance <- Distance/1609.34; #to mi
   distance_shift <- c(0,Distance)
@@ -119,7 +155,7 @@ read_fit <- function(fit_file) {
   Elevation = Elevation*3.28084; #to feet
     
   #other data (some of which might not be present)
-  data_heads = c("heart_rate","step_length","stance_time_balance","vertical_ratio","stance_time","power")
+  data_heads = c("heart_rate","step_length","stance_time_balance","vertical_ratio","stance_time","vertical_oscillation","power")
   other_data = search_and_extract_headers(fit_allrecords,data_heads);
   
   # Create a data frame
@@ -131,8 +167,26 @@ read_fit <- function(fit_file) {
   data$time <- Time;
   data = relocate(data,'time',1);
 
-  elev_gainloss = calculate_elevation_gain_smoothed(Elevation,window_size = 40);
-  meta_data <- data.frame(Activity = activity_type, total_Ascent = elev_gainloss[[1]], total_Ascent = elev_gainloss[[2]]);
+  elev_gainloss = calculate_elevation_gain_smoothed(Elevation,window_size = 10);
+  elev_gainloss2 = calculate_elevation_gain_smoothed(Elevation,window_size = 20);
+  elev_gainloss3 = calculate_elevation_gain_smoothed(Elevation,window_size = 40);
+  elev_gainloss4 = calculate_elevation_gain_smoothed(Elevation,window_size = 60);
+  elev_gainloss5 = calculate_elevation_gain_smoothed(Elevation,window_size = 80);
+  
+  meta_data <- data.frame(activity = activity_type, distance = max(distance), time = max(time)/60, avg_pace = mean(data$pace), avg_hr = mean(data$heart_rate),total_Ascent = elev_gainloss[[1]], total_Descent = elev_gainloss[[2]]);
+  
+  #Being lazy here...just trying to figure out a good smoothing parameter for later
+  meta_data$total_Ascent2 <- elev_gainloss2[[1]]
+  meta_data$total_Descent2 <- elev_gainloss2[[2]]
+  meta_data$total_Ascent3 <- elev_gainloss3[[1]]
+  meta_data$total_Descent3 <- elev_gainloss3[[2]]
+  meta_data$total_Ascent4 <- elev_gainloss4[[1]]
+  meta_data$total_Descent4 <- elev_gainloss4[[2]]
+  meta_data$total_Ascent5 <- elev_gainloss5[[1]]
+  meta_data$total_Descent5 <- elev_gainloss5[[2]]
+  
+  meta_data$state <- map.where(database="state", fit_allrecords$position_long[1], fit_allrecords$position_lat[1])
+  meta_data$county <- map.where(database="county", fit_allrecords$position_long[1], fit_allrecords$position_lat[1])
   
   out = list(data,meta_data);
   
@@ -209,6 +263,7 @@ file_path <- "Marshall_Half_Marathon_2012.tcx"  # Replace with the actual file p
 file_path <- "Zionsville_HM_23.fit"  # Replace with the actual file path
 file_path <- "PGH_10M_2016.fit";
 file_path <- "gym_workout.fit";
+file_path <- "trail_running.fit";
 # file_path <- "notTCX2.txt";
 
 # Read FIT or TCX file
@@ -236,7 +291,7 @@ fit_meta = fitness_data[[2]];
 # Plot map
 ggplot(fit_df, aes(x = lon, y = lat)) +
   coord_quickmap() +
-  geom_point(aes(colour = fit_df$distance))
+  geom_point(aes(colour = distance))
 
 coords <- cbind(fit_df$lon,fit_df$lat)
 
