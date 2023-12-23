@@ -1,9 +1,11 @@
-data_dir <- "/home/sivaprakasaman/Documents/Code/running_analytics/Data/testSet";
+data_dir <- "/home/sivaprakasaman/Documents/Code/running_analytics/Data/All_Fit_Files/all_fit";
+out_dir <- "/home/sivaprakasaman/Documents/Code/running_analytics/Data/All_Fit_Files/fit_convert";
+meta_dir <- "/home/sivaprakasaman/Documents/Code/running_analytics/Data/All_Fit_Files/all_meta";
+
 cwd <- getwd();
 setwd(data_dir);
 
-
-
+start_time <- Sys.time()
 ## Installing Dependencies & Importing Libraries
 list.of.packages <- c('ggplot2', 'leaflet', 'ggmap','remotes','dplyr','purrr','PerformanceAnalytics','nloptr','lme4','lubridate','revgeo','maps')
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
@@ -49,11 +51,15 @@ remove_outliers_df <- function(df, threshold = 3) {
 read_tcx <- function(tcx_file) {
   tcx <- readTCX(tcx_file, distanceunit = 'm')
   
+  activity_type = 'running'; #Assume for old non-fit data always running
+  
   # Extract relevant information
   Distance <- tcx$distance
   Distance <- Distance/1609.34; #to mi
   distance_shift <- c(0,Distance)
   distance_shift <- distance_shift[1:length(distance_shift)-1];
+  datetime = tcx$time[1];
+  season_date = get_season(datetime);
   
   time_absolute <- as.POSIXct(tcx$time);
   t_vect <- as.numeric(time_absolute);
@@ -72,7 +78,15 @@ read_tcx <- function(tcx_file) {
   Elevation = tcx$altitude*3.28084; #to feet
   
   # Create a data frame
-  data <- data.frame(time = Time, distance = Distance, avg_pace = mean(Pace), lat = tcx$latitude, lon = tcx$longitude, elevation = Elevation)
+  data <- data.frame(pace = Pace, lat = tcx$latitude, lon = tcx$longitude, elevation = Elevation)
+  
+  # Rearrange, remove outliers
+  data <- remove_outliers_df(data)
+  data_means <- calculate_column_means(data)
+  data$time <- Time;
+  data$distance <- Distance;
+  data = relocate(data,'time',1);
+  data = relocate(data,'distance',1);
   
   # Summary data, assume activities with gpx or text data are running
   
@@ -82,7 +96,8 @@ read_tcx <- function(tcx_file) {
   elev_gainloss4 = calculate_elevation_gain_smoothed(Elevation,window_size = 60);
   elev_gainloss5 = calculate_elevation_gain_smoothed(Elevation,window_size = 80);
   
-  meta_data <- data.frame(activity = activity_type, total_Ascent = elev_gainloss[[1]], total_Descent = elev_gainloss[[2]]);
+  meta_data <- data.frame(activity = activity_type, date = datetime, season = season_date, distance = max(Distance, na.rm = TRUE), time = max(Time)/60, total_Ascent = elev_gainloss[[1]], total_Descent = elev_gainloss[[2]]);
+  meta_data <- cbind(meta_data, data_means)
   
   #Being lazy here...just trying to figure out a good smoothing parameter for later
   meta_data$total_Ascent2 <- elev_gainloss2[[1]]
@@ -106,17 +121,28 @@ read_tcx <- function(tcx_file) {
 read_fit <- function(fit_file) {
   fit <- readFitFile(fit_file)
   
+  tryCatch(
+    expr = {
+      sport_msg = getMessagesByType(fit,'sport');
+    },
+    error = function(e){ 
+      # (Optional)
+      # Do this if an error is caught...
+      return(NULL)
+      print("ERROR: Can't parse file. Returning...")
+    }
+  )
+  
   # Extract relevant information using records
   fit_allrecords <- records(fit) %>% 
     bind_rows() %>% 
     arrange(timestamp) 
   
-  sport_msg = getMessagesByType(fit,'sport');
   activity_type = sport_msg[[2]];
   
   if(tolower(activity_type) != "running"){
     print(paste('Activity Type: ', activity_type,'-- Skipping'))
-    return()
+    return(NULL)
   }
     
   
@@ -124,6 +150,8 @@ read_fit <- function(fit_file) {
   Distance <- Distance/1609.34; #to mi
   distance_shift <- c(0,Distance)
   distance_shift <- distance_shift[1:length(distance_shift)-1];
+  datetime = fit_allrecords$timestamp[1];
+  season_date = get_season(datetime);
     
   time_absolute <- as.POSIXct(fit_allrecords$timestamp);
   t_vect <- as.numeric(time_absolute);
@@ -159,21 +187,25 @@ read_fit <- function(fit_file) {
   other_data = search_and_extract_headers(fit_allrecords,data_heads);
   
   # Create a data frame
-  data <- data.frame(distance = Distance, pace = Pace, cadence = Cadence, elevation = Elevation, lat = fit_allrecords$position_lat, lon = fit_allrecords$position_long)
+  data <- data.frame(pace = Pace, cadence = Cadence, elevation = Elevation, lat = fit_allrecords$position_lat, lon = fit_allrecords$position_long)
   data <- cbind(data, other_data)
-    
+  
   # Z-score data, and reject any points > +\- 3SDs above mean (assume measurement noise)
   data <- remove_outliers_df(data)
+  data_means <- calculate_column_means(data)
   data$time <- Time;
+  data$distance <- Distance;
   data = relocate(data,'time',1);
-
+  data = relocate(data,'distance',1);
+  
   elev_gainloss = calculate_elevation_gain_smoothed(Elevation,window_size = 10);
   elev_gainloss2 = calculate_elevation_gain_smoothed(Elevation,window_size = 20);
   elev_gainloss3 = calculate_elevation_gain_smoothed(Elevation,window_size = 40);
   elev_gainloss4 = calculate_elevation_gain_smoothed(Elevation,window_size = 60);
   elev_gainloss5 = calculate_elevation_gain_smoothed(Elevation,window_size = 80);
   
-  meta_data <- data.frame(activity = activity_type, distance = max(distance), time = max(time)/60, avg_pace = mean(data$pace), avg_hr = mean(data$heart_rate),total_Ascent = elev_gainloss[[1]], total_Descent = elev_gainloss[[2]]);
+  meta_data <- data.frame(activity = activity_type, date = datetime, season = season_date, distance = max(Distance, na.rm = TRUE), time = max(Time)/60, total_Ascent = elev_gainloss[[1]], total_Descent = elev_gainloss[[2]]);
+  meta_data <- cbind(meta_data, data_means)
   
   #Being lazy here...just trying to figure out a good smoothing parameter for later
   meta_data$total_Ascent2 <- elev_gainloss2[[1]]
@@ -257,49 +289,105 @@ search_and_extract_headers <- function(df, headers_to_search) {
   return(new_df)
 }
 
-# Example usage
-file_path <- "Marshall_Half_Marathon_2012.tcx"  # Replace with the actual file path
+calculate_column_means <- function(input_df) {
+  means <- colMeans(input_df, na.rm = TRUE)
+  means_df <- data.frame(t(means))
+  
+  # Modify column names to "mean_previous_column"
+  colnames(means_df) <- paste("mean_", colnames(input_df), sep = "")
+  
+  return(means_df)
+}
 
-file_path <- "Zionsville_HM_23.fit"  # Replace with the actual file path
-file_path <- "PGH_10M_2016.fit";
-file_path <- "gym_workout.fit";
-file_path <- "trail_running.fit";
+get_season <- function(date) {
+  # Extract month and day from the date
+  month_day <- format(date, "%m-%d")
+  
+  # Determine the season based on the month and day
+  if (month_day >= "03-21" && month_day <= "06-20") {
+    return("Spring")
+  } else if (month_day >= "06-21" && month_day <= "09-22") {
+    return("Summer")
+  } else if (month_day >= "09-23" && month_day <= "12-20") {
+    return("Fall")
+  } else {
+    return("Winter")
+  }
+}
+
+##################################################################################
+# Example usage
+# file_path <- "Marshall_Half_Marathon_2012.tcx"  # Replace with the actual file path
+# 
+# file_path <- "Zionsville_HM_23.fit"  # Replace with the actual file path
+# file_path <- "PGH_10M_2016.fit";
+# file_path <- "gym_workout.fit";
+# file_path <- "trail_running.fit";
 # file_path <- "notTCX2.txt";
 
+file_list = list.files();
+
 # Read FIT or TCX file
-tryCatch(
-  expr = {
-    fitness_data <- read_fitness_data(file_path);
-  },
-  error = function(e){ 
-    # (Optional)
-    # Do this if an error is caught...
-    print("ERROR: Can't parse file.")
-  },
-  finally = {
-    print(paste(file_path,' Processing Complete'))
+
+meta_df_all <- data.frame();
+count <- 0;
+for(i in file_list){
+  count <- count +1;
+  total_files <- length(file_list);
+  print(paste('File: ', i, 'File', count, '/', total_files))
+  fitness_data <- NULL;
+  tryCatch(
+    expr = {
+      fitness_data <- read_fitness_data(i);
+    },
+    error = function(e){ 
+      # (Optional)
+      # Do this if an error is caught...
+      print("ERROR: Can't parse file.")
+    },
+    finally = {
+      print(paste(i,' Processing Attempted'))
+    }
+  )
+  
+  if(!is.null(fitness_data)){
+    #appending meta_data
+    meta_df_all <- dplyr::bind_rows(meta_df_all,fitness_data[[2]]);
+    setwd(out_dir);
+    fname <- paste0(tools::file_path_sans_ext(i),'.csv')
+    write.csv(fitness_data[[1]],fname, row.names = FALSE);
+    setwd(data_dir);
   }
-)
+  
+  setwd(meta_dir)
+  write.csv(meta_df_all,'full_meta_df.csv', row.names = FALSE);
+  setwd(data_dir);
+}
 
+end_time <- Sys.time()
+
+time_fin <- end_time-start_time
+
+print(time_fin)
 # Print the extracted data
-print("Fitness Data:")
-print(fitness_data)
-
-fit_df = fitness_data[[1]];
-fit_meta = fitness_data[[2]];
-
-# Plot map
-ggplot(fit_df, aes(x = lon, y = lat)) +
-  coord_quickmap() +
-  geom_point(aes(colour = distance))
-
-coords <- cbind(fit_df$lon,fit_df$lat)
-
-m <- coords %>% 
-  leaflet(  ) %>%
-  addTiles() %>%
-  addPolylines(color = 'red')
-m
+# print("Fitness Data:")
+# print(fitness_data)
+# 
+# fit_df = fitness_data[[1]];
+# fit_meta = fitness_data[[2]];
+# 
+# # Plot map
+# ggplot(fit_df, aes(x = lon, y = lat)) +
+#   coord_quickmap() +
+#   geom_point(aes(colour = distance))
+# 
+# coords <- cbind(fit_df$lon,fit_df$lat)
+# 
+# m <- coords %>% 
+#   leaflet(  ) %>%
+#   addTiles() %>%
+#   addPolylines(color = 'red')
+# m
 
 setwd(cwd)
 
