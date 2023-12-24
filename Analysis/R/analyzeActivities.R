@@ -29,7 +29,8 @@ running_only$Time = running_only$Time/60;
 running_only$Avg.Pace = running_only$Avg.Pace/60;
 
 running_only$Avg.HR = as.numeric(running_only$Avg.HR);
-
+running_only$Total.Ascent = as.numeric(running_only$Total.Ascent);
+running_only$Total.Descent = as.numeric(running_only$Total.Descent);
 
 hr_present <- subset(running_only, Avg.HR>0);
 plot_dist <- ggplot(hr_present, aes(x=Avg.Pace,y=Avg.HR))
@@ -62,6 +63,17 @@ p2 <- running_only %>%
   ) +
   scale_x_continuous(breaks = scales::pretty_breaks(n = 20))
 
+p3 <- running_only %>%
+  ggplot(aes(x = 1, y=Total.Descent)) +
+  geom_jitter(size=1,width = 0.35, alpha=0.14) + 
+  geom_boxplot(alpha = 0.7) +
+  labs(title = "Distribution of Multiple Columns",
+       x = "Window",
+       y = "Elevation Gain/Loss Estimate",
+       fill = "Variable")
 
-setwd(cwd);
+
+p3
+
+setwd(cwd)
 
