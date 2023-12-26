@@ -1,4 +1,4 @@
-data_dir <- "/home/sivaprakasaman/Documents/Code/running_analytics/Data/All_Fit_Files/all_fit_to_12_23_23";
+data_dir <- "/home/sivaprakasaman/Documents/Code/running_analytics/Data/All_Fit_Files/all_fit_new";
 out_dir <- "/home/sivaprakasaman/Documents/Code/running_analytics/Data/All_Fit_Files/fit_convert";
 meta_dir <- "/home/sivaprakasaman/Documents/Code/running_analytics/Data/All_Fit_Files/all_meta";
 
@@ -96,7 +96,7 @@ read_tcx <- function(tcx_file) {
   elev_gainloss4 = calculate_elevation_gain_smoothed(Elevation,window_size = 60);
   elev_gainloss5 = calculate_elevation_gain_smoothed(Elevation,window_size = 80);
   
-  meta_data <- data.frame(activity = activity_type, date = datetime, season = season_date, distance = max(Distance, na.rm = TRUE), time = max(Time)/60, total_Ascent = elev_gainloss[[1]], total_Descent = elev_gainloss[[2]]);
+  meta_data <- data.frame(activity = activity_type, date = as.character(datetime), season = season_date, distance = max(Distance, na.rm = TRUE), time = max(Time)/60, total_Ascent = elev_gainloss[[1]], total_Descent = elev_gainloss[[2]]);
   meta_data <- cbind(meta_data, data_means)
   
   #Being lazy here...just trying to figure out a good smoothing parameter for later
@@ -204,7 +204,7 @@ read_fit <- function(fit_file) {
   elev_gainloss4 = calculate_elevation_gain_smoothed(Elevation,window_size = 60);
   elev_gainloss5 = calculate_elevation_gain_smoothed(Elevation,window_size = 80);
   
-  meta_data <- data.frame(activity = activity_type, date = datetime, season = season_date, distance = max(Distance, na.rm = TRUE), time = max(Time)/60, total_Ascent = elev_gainloss[[1]], total_Descent = elev_gainloss[[2]]);
+  meta_data <- data.frame(activity = activity_type, date = as.character(datetime), season = season_date, distance = max(Distance, na.rm = TRUE), time = max(Time)/60, total_Ascent = elev_gainloss[[1]], total_Descent = elev_gainloss[[2]]);
   meta_data <- cbind(meta_data, data_means)
   
   #Being lazy here...just trying to figure out a good smoothing parameter for later
@@ -317,19 +317,19 @@ get_season <- function(date) {
 
 ##################################################################################
 # Example usage
-# file_path <- "Marshall_Half_Marathon_2012.tcx"  # Replace with the actual file path
-# 
-# file_path <- "Zionsville_HM_23.fit"  # Replace with the actual file path
-# file_path <- "PGH_10M_2016.fit";
-# file_path <- "gym_workout.fit";
-# file_path <- "trail_running.fit";
-# file_path <- "notTCX2.txt";
+
+append_new = TRUE; #TRUE if you have an existing meta_df csv you just want to add to
 
 file_list = list.files();
 
-# Read FIT or TCX file
+if(append_new){
+  setwd(meta_dir)
+  meta_df_all <- read.csv('full_meta_df.csv');
+  setwd(data_dir)
+} else{
+  meta_df_all <- data.frame(); #initialize empty
+}
 
-meta_df_all <- data.frame();
 count <- 0;
 for(i in file_list){
   count <- count +1;
