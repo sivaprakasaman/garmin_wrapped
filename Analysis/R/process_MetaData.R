@@ -19,12 +19,37 @@ activities <- read.csv("Activities_to_12_24_23.csv")
 activities <- subset(activities, Activity.Type %in% c("Running","Trail Running","Track Running"))
 
 dataset$date <- as.Date(dataset$date)
+
 activities$Date <- as.Date(activities$Date)
 activities$Total.Ascent <- as.numeric(activities$Total.Ascent)
 activities$Total.Descent <- -as.numeric(activities$Total.Descent)
 
-dataset$avg_ft_mi = dataset$total_Ascent2/dataset$distance;
+
+
+dataset$avg_ft_mi = dataset$total_Ascent3/dataset$distance;
 dataset$avg_ft_mi = as.numeric(dataset$avg_ft_mi);
+
+#correcting for the random number apparently specified by garmin for stance_time_balance not present
+#guessing this might need to be logged if any running dynamics are logged, but
+#when using the 955, no GCT balance can be collected
+dataset$mean_stance_time_balance[which(dataset$mean_stance_time_balance>100)]= NA;
+
+#also mean vertical oscillation > .5m is ludicrous, so cleaning up the v osc and ratio
+#steplength > 3m is also crazy
+ind_rm <- which(dataset$mean_vertical_oscillation>500);
+ind_rm <- c(ind_rm, which(dataset$mean_step_length>3000));
+ind_rm <- c(ind_rm, which(dataset$mean_vertical_ratio>20)); 
+
+dataset$mean_vertical_ratio[ind_rm]= NA;
+dataset$mean_vertical_oscillation[ind_rm]= NA;
+dataset$mean_step_length[ind_rm]= NA;
+
+biomechs <- select(dataset, c('mean_heart_rate','mean_pace','mean_cadence','mean_elevation','mean_step_length','mean_vertical_ratio','mean_stance_time','mean_vertical_oscillation','mean_power'))
+biomechs <- sapply(biomechs, as.numeric)
+colnames(biomechs) = c('Heart Rate','Pace','Cadence','Elevation','Step Length','Vertical Ratio','Stance Time','Vertical Oscillation','Power')
+
+# activities$avg_ft_mi = activities$Total.Ascent/as.numeric(activities$Distance);
+# activities$avg_ft_mi = as.numeric(activities$avg_ft_mi);
 
 start_date <- as.Date("2023-01-01")
 end_date <- as.Date("2023-12-24")
@@ -44,30 +69,55 @@ activities_year <- activities[activities$Date >= start_date & activities$Date <=
 # p
 
 dataset$year <- format(dataset$date, "%Y")
-year_plot_Data <- aggregate(distance ~ year, data = dataset, sum)
+year_dist <- aggregate(distance ~ year, data = dataset, sum)
+year_time <- aggregate(time ~ year, data = dataset, sum)
+year_time$time <- year_time$time/60;
 
-colourCount = nrow(year_plot_Data)
-getPalette = colorRampPalette(brewer.pal(9, "PuBu"))
+colourCount = nrow(year_time)
+# getPalette = colorRampPalette(brewer.pal(9, "PuBu"))
 
-year_plot <- ggplot(year_plot_Data, aes(x = year, y = distance, fill = year)) +
-  geom_bar(stat = "identity") +
-  geom_text(aes(label = sprintf("%.0f", distance), y = distance),  vjust = -.2, color = "black", size = 3.5) +
-  labs(title = "Distance Run Each Year",
+col_dist = "cornflowerblue"
+year_plot_dist <- ggplot(year_dist, aes(x = year, y = distance)) +
+  geom_bar(stat = "identity",  fill = col_dist,aes(alpha=distance)) +
+  geom_text(aes(label = sprintf("%.0f", distance), y = distance),  vjust = -.2, color = "gray40", size = 3.5) +
+  labs(title = paste0("Distance Run Each Year (Grand Total = ", sum(as.integer(year_dist$distance))," miles)"),
        x = "Year",
        y = "Total Distance (Mi)") +
   theme_pubclean()+
-  scale_fill_manual(values = getPalette(colourCount))+
-  theme(panel.background = element_rect(fill = "gray94"))+
-  theme(legend.position = "none")
+  # scale_fill_manual(values = getPalette(colourCount))+
+  # theme(panel.background = element_rect(fill = "gray94"))+
+  theme(legend.position = "none")+
+  ylim(0,1050)
 
+# year_plot_dist
+
+# getPalette = colorRampPalette(brewer.pal(9, "PuRd"))
+col_time = "darkorchid"
+year_plot_time <- ggplot(year_time, aes(x = year, y = time)) +
+  geom_bar(stat = "identity", fill = col_time, aes(alpha=time)) +
+  geom_text(aes(label = sprintf("%.2f", time), y = time),  vjust = -.2, color = "gray40", size = 3.5) +
+  labs(title = paste0("Time Spent Running Each Year (Grand Total = ",sum(year_time$time)," hours)"),
+       x = "Year",
+       y = "Total Time (Hours)") +
+  theme_pubclean()+
+  # scale_fill_manual(values = getPalette(colourCount))+
+  # theme(panel.background = element_rect(fill = "gray94"))+
+  theme(legend.position = "none")+
+  ylim(0,165)
+
+# year_plot_time
+
+year_plot <-  ggarrange(year_plot_dist, year_plot_time,
+                        labels = c("A", "B"),
+                        ncol = 1, nrow = 2)
 year_plot
 
 
 clr_dist = "#390273";
 p <-ggplot()+
   geom_histogram(data=dataset,aes(x=distance, fill="All Time", alpha="All Time"), binwidth=2, color="#e9ecef") +
-  stat_bin(data=dataset,aes(x = distance, label=..count.., color="All Time", alpha="All Time"), binwidth = 2, geom="text", vjust=-1.5, show.legend = FALSE) +
-  stat_bin(data=dataset_year,aes(x = distance, label=..count..,color="This Year", alpha="This Year"), binwidth = 2, geom="text", vjust=-.5, show.legend = FALSE) +
+  stat_bin(data=dataset,aes(x = distance, label=..count.., color="All Time", alpha="All Time"), binwidth = 2, geom="text", vjust=-1.1, show.legend = FALSE) +
+  stat_bin(data=dataset_year,aes(x = distance, label=..count..,color="This Year", alpha="This Year"), binwidth = 2, geom="text", vjust=-.2, show.legend = FALSE) +
   geom_histogram(data=dataset_year,aes(x=distance, fill="This Year", alpha="This Year"), binwidth=2, color="#e9ecef") +
   theme(
     plot.title = element_text(size=15)
@@ -79,7 +129,7 @@ p <-ggplot()+
                   name = " ") +
   scale_alpha_manual(values = c("All Time" = 0.4, "This Year" = 0.9),
                      name = " ") +
-  ylim(0,440) +
+  ylim(0,470) +
   scale_x_continuous(breaks = scales::pretty_breaks(n = 14), limits=c(-1,28))+
 labs(title = paste0("Distance (N = ",nrow(dataset), " runs total, ",nrow(dataset_year), " this year)"),
        x = "Distance (miles)",
@@ -93,7 +143,7 @@ clr_hist = "#007f9e";
 p2 <-ggplot()+
   geom_histogram(data=dataset,aes(x=mean_pace, fill="All Time", alpha="All Time"), binwidth=1, color="#e9ecef") +
   stat_bin(data=dataset,aes(x = mean_pace, label=..count.., color="All Time", alpha="All Time"), binwidth = 1, geom="text", vjust=-1, show.legend = FALSE) +
-  stat_bin(data=dataset_year,aes(x = mean_pace, label=..count..,color="This Year", alpha="This Year"), binwidth = 1, geom="text", vjust=-.3, show.legend = FALSE) +
+  stat_bin(data=dataset_year,aes(x = mean_pace, label=..count..,color="This Year", alpha="This Year"), binwidth = 1, geom="text", vjust=-.2, show.legend = FALSE) +
   geom_histogram(data=dataset_year,aes(x=mean_pace, fill="This Year", alpha="This Year"), binwidth=1, color="#e9ecef") +
   theme(
     plot.title = element_text(size=15)
@@ -107,7 +157,7 @@ p2 <-ggplot()+
   labs(title = "Pace",
        x = "Pace (min/mi)",
        y = "Count")+
-  ylim(0,430) +
+  ylim(0,470) +
   scale_x_continuous(breaks = scales::pretty_breaks(n = 15), limits=c(4,14))+
   theme_pubclean()
 
@@ -205,8 +255,8 @@ elevation_compare_runavg <- ggplot(common_states_all, aes(x = state, y = avg_ft_
   labs(title = "Hilliness of Runs Across States",
        x = "State",
        y = "Average Elevation Gain per Mile (ft/mi)") +
-  ylim(0,450)+
-  stat_pvalue_manual(stat.test, label = "p.adj.signif", tip.length = 0.01, y.position = c(420, 450, 420),bracket.shorten = 0.1, inherit.aes=FALSE)+
+  ylim(0,350)+
+  stat_pvalue_manual(stat.test, label = "p.adj.signif", tip.length = 0.01, y.position = c(325, 350, 325),bracket.shorten = 0.1, inherit.aes=FALSE)+
   theme_pubclean()+
   theme(legend.position = "none")
   # 
@@ -234,5 +284,14 @@ hr_season2 <- ggplot() +
   scale_fill_manual(values = c("Average" = "blue", "This Year" = "purple"))
 
 hr_season2
+
+
+r_m <- cor(biomechs, use="complete.obs", method = "pearson");
+res1 <- cor.mtest(biomechs, conf.level = 0.95);
+
+#plot correlation matrix/clustering
+corr_plot_noSig = corrplot(r_m,order='hclust');
+corr_plot_Sig = corrplot(r_m,order='hclust',p.mat=res1$p, sig.level = 0.005);
+
 
 setwd(cwd)
