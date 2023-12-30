@@ -1,9 +1,10 @@
-data_dir <- "/home/sivaprakasaman/Documents/Code/running_analytics/Data/All_Fit_Files/all_fit_new";
+data_dir <- "/home/sivaprakasaman/Documents/Code/running_analytics/Data/All_Fit_Files/all_fit";
 out_dir <- "/home/sivaprakasaman/Documents/Code/running_analytics/Data/All_Fit_Files/fit_convert";
 meta_dir <- "/home/sivaprakasaman/Documents/Code/running_analytics/Data/All_Fit_Files/all_meta";
 
 dir.create(file.path(out_dir), showWarnings = FALSE)
-setwd(file.path(meta_dir, subDir))
+dir.create(file.path(meta_dir), showWarnings = FALSE)
+setwd(data_dir)
 
 cwd <- getwd();
 setwd(data_dir);
@@ -87,7 +88,7 @@ read_tcx <- function(tcx_file) {
   data <- remove_outliers_df(data)
   data_means <- calculate_column_means(data)
   data$time <- Time;
-  data$datetime<-fit_allrecords$timestamp
+  data$datetime<-tcx$time
   data$distance <- Distance;
   data = relocate(data,'time',1);
   data = relocate(data,'distance',1);
@@ -322,8 +323,7 @@ get_season <- function(date) {
 
 ##################################################################################
 # Example usage
-
-append_new = TRUE; #TRUE if you have an existing meta_df csv you just want to add to
+append_new = FALSE; #TRUE if you have an existing meta_df csv you just want to add to
 
 file_list = list.files();
 
