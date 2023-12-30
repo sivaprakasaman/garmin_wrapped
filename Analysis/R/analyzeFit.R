@@ -84,6 +84,7 @@ read_tcx <- function(tcx_file) {
   data <- remove_outliers_df(data)
   data_means <- calculate_column_means(data)
   data$time <- Time;
+  data$datetime<-fit_allrecords$timestamp
   data$distance <- Distance;
   data = relocate(data,'time',1);
   data = relocate(data,'distance',1);
@@ -194,6 +195,7 @@ read_fit <- function(fit_file) {
   data <- remove_outliers_df(data)
   data_means <- calculate_column_means(data)
   data$time <- Time;
+  data$datetime<-fit_allrecords$timestamp
   data$distance <- Distance;
   data = relocate(data,'time',1);
   data = relocate(data,'distance',1);

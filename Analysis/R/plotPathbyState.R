@@ -10,7 +10,9 @@ csv_dir <- "/home/sivaprakasaman/Documents/Code/running_analytics/Data/All_Fit_F
 cwd <- getwd();
 setwd(csv_dir);
 
-state_toSearch <- "pennsylvania"
+show_all <- FALSE; #set true if not looking for a specific state
+  
+state_toSearch <- "indiana" #ignored when show_all is TRUE
 
 file_list = list.files();
 lat_list <- c();
@@ -25,12 +27,16 @@ for(i in file_list){
   fit_data <- read.csv(i)
   state <- map.where(database="state", fit_data$lon[1], fit_data$lat[1])
   
+  #probably could write this more efficiently
   tryCatch(
     expr = {
-      if(state==state_toSearch){
+      if(show_all){
         lat_list <- c(lat_list,fit_data$lat, NA)
         lon_list <- c(lon_list,fit_data$lon, NA)
-      }    
+      }else if(!show_all && state==state_toSearch){
+        lat_list <- c(lat_list,fit_data$lat, NA)
+        lon_list <- c(lon_list,fit_data$lon, NA)
+      }
     },
     error = function(e){ 
       # (Optional)
@@ -41,13 +47,15 @@ for(i in file_list){
 
 
 #plotting
-coords <- cbind(lon_list,lat_list)
 
+#path + map
+coords <- cbind(lon_list,lat_list)
 m <- coords %>%
   leaflet(  ) %>%
   addTiles() %>%
-  addPolylines(color = 'black', weight=1.5)
+  addPolylines(color = 'purple', weight=2)
 m
+
 
 
 setwd(cwd)
