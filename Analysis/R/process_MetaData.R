@@ -1,4 +1,4 @@
-list.of.packages <- c('ggplot2', 'dplyr','corrplot','PerformanceAnalytics','nloptr','lme4','lubridate', 'tidyr','ggpubr', 'rstatix','RColorBrewer')
+list.of.packages <- c('ggplot2', 'dplyr','corrplot','nloptr', 'tidyr','ggpubr', 'rstatix','RColorBrewer')
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages)
 
@@ -10,8 +10,6 @@ cwd <- getwd();
 setwd(data_dir);
 
 dataset <- read.csv('full_meta_df.csv')
-# dataset$state <- as.factor(dataset$state)
-
 data_dir <- data_dir <- "~/Documents/Code/garmin_wrapped/Data/Activity Logs/";
 setwd(data_dir);
 
@@ -23,8 +21,6 @@ dataset$date <- as.Date(dataset$date)
 activities$Date <- as.Date(activities$Date)
 activities$Total.Ascent <- as.numeric(activities$Total.Ascent)
 activities$Total.Descent <- -as.numeric(activities$Total.Descent)
-
-
 
 dataset$avg_ft_mi = dataset$total_Ascent3/dataset$distance;
 dataset$avg_ft_mi = as.numeric(dataset$avg_ft_mi);
@@ -138,7 +134,6 @@ labs(title = paste0("Distance (N = ",nrow(dataset), " runs total, ",nrow(dataset
 
 p
 
-
 clr_hist = "#007f9e";
 p2 <-ggplot()+
   geom_histogram(data=dataset,aes(x=mean_pace, fill="All Time", alpha="All Time"), binwidth=1, color="#e9ecef") +
@@ -169,26 +164,46 @@ figure <- ggarrange(p, p2,
                     ncol = 1, nrow = 2)
 figure
 
-season_order <- c("Winter","Spring","Summer","Fall")
-season_colors <- c("red","green","yellow","blue")
+season_order <- c("Fall","Spring","Summer","Winter")
+season_colors <- c( "#D2691E","#7EC8A4","#FFD700","#ADD8E6")
 
 dataset_counts <- sapply(season_order, function(x) sum(grepl(x, dataset$season)))
 dataset_year_counts <- sapply(season_order, function(x) sum(grepl(x, dataset_year$season)))
-df_counts <- data.frame(season = season_order, counts = dataset_counts)
-df_counts$percent <- 100*df_counts$counts/sum(df_counts$counts)
-df_counts_year <- data.frame(season = season_order, counts = dataset_year_counts)
-df_counts_year$percent <- 100*df_counts_year$counts/sum(df_counts_year$counts)
 
-pie_full <- ggplot(df_counts, aes(x = "", y = percent, fill = season_order)) +
+dataset_season_miles <- sapply(season_order, function(x) sum(dataset$distance[grepl(x, dataset$season)]))
+dataset_year_season_miles <-sapply(season_order, function(x) sum(dataset_year$distance[grepl(x, dataset_year$season)]))
+
+df_counts <- data.frame(season = season_order, counts = dataset_counts, miles = dataset_season_miles)
+df_counts$percent <- 100*df_counts$counts/sum(df_counts$counts)
+df_counts$miles_percent <- 100*df_counts$miles/sum(df_counts$miles)
+
+df_counts_year <- data.frame(season = season_order, counts = dataset_year_counts, miles = dataset_year_season_miles)
+df_counts_year$percent <- 100*df_counts_year$counts/sum(df_counts_year$counts)
+df_counts_year$miles_percent <- 100*df_counts_year$miles/sum(df_counts_year$miles)
+
+pie_full <- ggplot(df_counts, aes(x = "", y = miles_percent, fill = season_order)) +
   geom_bar(stat = "identity", width = 1) +
   coord_polar("y") +  # Use polar coordinates for a pie chart
-  geom_text(aes(label = sprintf("%s \n %d (%.1f%%)", season, counts, percent)),
+  geom_text(aes(label = sprintf("%s \n %.f (%.1f%%)", season, miles, miles_percent)),
             position = position_stack(vjust = 0.5)) +
   theme_void() +  # Remove unnecessary elements
-  labs(title = "Pie Chart of Counts and Percentages") + 
+  labs(title = "12-Year Seasonal Distribution of Miles") + 
+  scale_fill_manual(values=season_colors)+
   theme(legend.position = "none")
 
-pie_full
+pie_yr <- ggplot(df_counts_year, aes(x = "", y = miles_percent, fill = season_order)) +
+  geom_bar(stat = "identity", width = 1) +
+  coord_polar("y") +  # Use polar coordinates for a pie chart
+  geom_text(aes(label = sprintf("%s \n %.f (%.1f%%)", season, miles, miles_percent)),
+            position = position_stack(vjust = 0.5)) +
+  theme_void() +  # Remove unnecessary elements
+  labs(title = "2023 Distribution") + 
+  scale_fill_manual(values=season_colors)+
+  theme(legend.position = "none")
+
+both_pies <- ggarrange(pie_full, pie_yr,
+                       ncol = 2, nrow = 1)
+both_pies
 
 
 

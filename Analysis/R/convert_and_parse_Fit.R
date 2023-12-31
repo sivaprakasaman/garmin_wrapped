@@ -1,6 +1,6 @@
-data_dir <- "/home/sivaprakasaman/Documents/Code/running_analytics/Data/All_Fit_Files/all_fit";
-out_dir <- "/home/sivaprakasaman/Documents/Code/running_analytics/Data/All_Fit_Files/fit_convert";
-meta_dir <- "/home/sivaprakasaman/Documents/Code/running_analytics/Data/All_Fit_Files/all_meta";
+data_dir <- "/home/sivaprakasaman/Documents/Code/garmin_wrapped/Data/All_Fit_Files/all_fit";
+out_dir <- "/home/sivaprakasaman/Documents/Code/garmin_wrapped/Data/All_Fit_Files/fit_convert";
+meta_dir <- "/home/sivaprakasaman/Documents/Code/garmin_wrapped/Data/All_Fit_Files/all_meta";
 
 dir.create(file.path(out_dir), showWarnings = FALSE)
 dir.create(file.path(meta_dir), showWarnings = FALSE)
@@ -11,7 +11,7 @@ setwd(data_dir);
 
 start_time <- Sys.time()
 ## Installing Dependencies & Importing Libraries
-list.of.packages <- c('ggplot2', 'leaflet', 'ggmap','remotes','dplyr','purrr','PerformanceAnalytics','nloptr','lme4','lubridate','revgeo','maps')
+list.of.packages <- c('ggplot2','remotes','dplyr','purrr','PerformanceAnalytics','nloptr','lubridate','revgeo','maps')
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages)
 
@@ -370,29 +370,7 @@ for(i in file_list){
 }
 
 end_time <- Sys.time()
-
 time_fin <- end_time-start_time
-
 print(time_fin)
-# Print the extracted data
-# print("Fitness Data:")
-# print(fitness_data)
-# 
-# fit_df = fitness_data[[1]];
-# fit_meta = fitness_data[[2]];
-# 
-# # Plot map
-# ggplot(fit_df, aes(x = lon, y = lat)) +
-#   coord_quickmap() +
-#   geom_point(aes(colour = distance))
-# 
-# coords <- cbind(fit_df$lon,fit_df$lat)
-# 
-# m <- coords %>% 
-#   leaflet(  ) %>%
-#   addTiles() %>%
-#   addPolylines(color = 'red')
-# m
-
 setwd(cwd)
 
