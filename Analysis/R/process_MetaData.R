@@ -5,14 +5,14 @@ if(length(new.packages)) install.packages(new.packages)
 lapply(list.of.packages,library, character.only=TRUE)
 
 
-data_dir <- "~/Documents/Code/running_analytics/Data/All_Fit_Files/all_meta"
+data_dir <- "~/Documents/Code/garmin_wrapped/Data/All_Fit_Files/all_meta"
 cwd <- getwd();
 setwd(data_dir);
 
 dataset <- read.csv('full_meta_df.csv')
 # dataset$state <- as.factor(dataset$state)
 
-data_dir <- data_dir <- "~/Documents/Code/running_analytics/Data/Activity Logs/";
+data_dir <- data_dir <- "~/Documents/Code/garmin_wrapped/Data/Activity Logs/";
 setwd(data_dir);
 
 activities <- read.csv("Activities_to_12_24_23.csv")
@@ -171,6 +171,27 @@ figure
 
 season_order <- c("Winter","Spring","Summer","Fall")
 season_colors <- c("red","green","yellow","blue")
+
+dataset_counts <- sapply(season_order, function(x) sum(grepl(x, dataset$season)))
+dataset_year_counts <- sapply(season_order, function(x) sum(grepl(x, dataset_year$season)))
+df_counts <- data.frame(season = season_order, counts = dataset_counts)
+df_counts$percent <- 100*df_counts$counts/sum(df_counts$counts)
+df_counts_year <- data.frame(season = season_order, counts = dataset_year_counts)
+df_counts_year$percent <- 100*df_counts_year$counts/sum(df_counts_year$counts)
+
+pie_full <- ggplot(df_counts, aes(x = "", y = percent, fill = season_order)) +
+  geom_bar(stat = "identity", width = 1) +
+  coord_polar("y") +  # Use polar coordinates for a pie chart
+  geom_text(aes(label = sprintf("%s \n %d (%.1f%%)", season, counts, percent)),
+            position = position_stack(vjust = 0.5)) +
+  theme_void() +  # Remove unnecessary elements
+  labs(title = "Pie Chart of Counts and Percentages") + 
+  theme(legend.position = "none")
+
+pie_full
+
+
+
 season_plot <- ggplot() +
   geom_bar(data=dataset,aes(x=season, fill = season),stat = "count", alpha=.2) +
   geom_bar(data=dataset_year,aes(x=season, fill = season),stat="count", alpha = .8) +
@@ -178,12 +199,15 @@ season_plot <- ggplot() +
   stat_count(data=dataset_year,aes(x = season, label=..count..), geom="text", vjust=-.2, show.legend = FALSE) +
   scale_fill_manual(values=season_colors)+
   scale_x_discrete(limits = season_order)+
-  coord_polar("y", start=0) +
   labs(x = "Season")+
   # theme_pubclean()+
   theme(legend.position = "none")
   
 season_plot
+
+
+#Piechart version
+
 
 
 dataset_elevation_stats <- select(dataset_year,c('total_Ascent','total_Descent','total_Ascent2','total_Descent2','total_Ascent3','total_Descent3','total_Ascent4','total_Descent4','total_Ascent5','total_Descent5'))
