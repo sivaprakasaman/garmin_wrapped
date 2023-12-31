@@ -169,11 +169,21 @@ figure <- ggarrange(p, p2,
                     ncol = 1, nrow = 2)
 figure
 
-p <- dataset_year %>%
-  ggplot(aes(x=season)) +
-  geom_bar(stat = "count") +
-  labs(x = "Month")
-p
+season_order <- c("Winter","Spring","Summer","Fall")
+season_colors <- c("red","green","yellow","blue")
+season_plot <- ggplot() +
+  geom_bar(data=dataset,aes(x=season, fill = season),stat = "count", alpha=.2) +
+  geom_bar(data=dataset_year,aes(x=season, fill = season),stat="count", alpha = .8) +
+  stat_count(data=dataset,aes(x = season, label=..count..), geom="text", vjust=-1, show.legend = FALSE) +
+  stat_count(data=dataset_year,aes(x = season, label=..count..), geom="text", vjust=-.2, show.legend = FALSE) +
+  scale_fill_manual(values=season_colors)+
+  scale_x_discrete(limits = season_order)+
+  coord_polar("y", start=0) +
+  labs(x = "Season")+
+  # theme_pubclean()+
+  theme(legend.position = "none")
+  
+season_plot
 
 
 dataset_elevation_stats <- select(dataset_year,c('total_Ascent','total_Descent','total_Ascent2','total_Descent2','total_Ascent3','total_Descent3','total_Ascent4','total_Descent4','total_Ascent5','total_Descent5'))
