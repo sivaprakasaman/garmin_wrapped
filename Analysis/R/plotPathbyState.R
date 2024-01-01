@@ -22,7 +22,7 @@ setwd(csv_dir);
 
 show_all <- FALSE; #set true if not looking for a specific state
   
-state_toSearch <- "indiana" #ignored when show_all is TRUE
+state_toSearch <- "west virginia" #ignored when show_all is TRUE
 
 file_list = list.files();
 lat_list <- c();
@@ -63,7 +63,7 @@ coords <- cbind(lon_list,lat_list)
 m <- coords %>%
   leaflet(  ) %>%
   addTiles() %>%
-  addPolylines(color = 'black', weight=2)
+  addPolylines(color = 'purple', weight=2)
 m
 
 
