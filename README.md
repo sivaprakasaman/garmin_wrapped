@@ -4,7 +4,7 @@
 
 **Are you a data nerd or enthusiast looking to dive into your fitness analytics, but want to dive deeper than Garmin Connect or Strava allows?** Maybe you're dreaming up the next new running metric and want to pilot it on some of your previous runs. Or, maybe you just want to condense this data into a few nice figures-- Spotify Wrapped style. 
 
-<img title="" src="Figures/year_dist_time.png" alt="year_dist_time.png" width="520"> <img title="" src="Figures/histo_dist_pace.png" alt="histo_dist_pace.png" width="410">
+<img title="" src="Figures/year_dist_time.png" alt="year_dist_time.png" width="420"> <img title="" src="Figures/histo_dist_pace.png" alt="histo_dist_pace.png" width="310">
 
 I've written some scripts that replicate figures similar to those in Connect, as well as a script to **plot paths in a manner similar to Strava** (Premium) heatmaps. 
 
