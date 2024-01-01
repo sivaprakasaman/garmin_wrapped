@@ -324,7 +324,6 @@ out_dir <- "~/Documents/Code/garmin_wrapped/DEMO_Data/fit_convert"; #Where you w
 meta_dir <- "~/Documents/Code/garmin_wrapped/DEMO_Data/all_meta"; #Where the metadata (summary files) will be saved
 
 
-
 dir.create(file.path(out_dir), showWarnings = FALSE)
 dir.create(file.path(meta_dir), showWarnings = FALSE)
 setwd(data_dir)

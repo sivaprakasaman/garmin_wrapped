@@ -54,7 +54,7 @@ If you can handle some basic R programming (Python in the works!), this reposito
 
 1. Install R Studio
 
-2. Open  `convert_and_parse_Fit.R`. This script will parse and batch convert your `.fit` and `.txt` files to `.csv` files that are easier to work with. To run this script, you will need to install the `FITfileR` and `trackeR` packages. Be sure to install any missing packages that are needed to complete that installation. The commented code in this script should help.
+2. Open  `convert_and_parse_Fit.R`. This script will parse and batch convert your `.fit` and `.txt` files to `.csv` files that are easier to work with. To run this script, you will need to install the `[FITfileR](https://github.com/grimbough/FITfileR)` and `[trackeR]`https://github.com/trackerproject/trackeR)` packages. Be sure to install any missing packages that are needed to complete that installation. The commented code in this script should help.
 
 3. Edit `data_dir`, `out_dir`, and `meta_dir` to match the folder structure on your compure. `data_dir` is where your fit files are, `out_dir` is where you want your converted `.csv`s to go, and `meta_dir` is where you want your per-run summary table of all runs to go.
 
