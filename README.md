@@ -16,12 +16,12 @@ You can also add your own metrics/plots and even play around with per-second dat
 
 After determining a reasonable smoothing window (40s seems to match Garmin's estimate reasonably well), I looked at the relative hilliness of my runs in the three states I've trained the most in to make sure I'm getting enough hilly runs in Indiana (it appears that I might not be!)
 <p align="center">
-<img title="" src="Figures/elevation_compare_state.png" alt="elevation_compare_state.png" width="650">
+<img title="" src="Figures/elevation_compare_state.png" alt="elevation_compare_state.png" width="550">
 </p>
 
 On top of looking at how this year's runs compare to all 1000+ runs I've completed, I also wanted to see how my **training by season** this year compared to all my runs. Seems like having COVID in Feb put me at a slight winter distance deficit!!
 <p align="center">
-<img title="" src="Figures/pie_season.png" alt="pie_season.png" width="650">
+<img title="" src="Figures/pie_season.png" alt="pie_season.png" width="550">
 </p>
 
 ---
