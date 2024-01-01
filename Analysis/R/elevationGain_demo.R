@@ -1,6 +1,8 @@
-#Assumes that you've already run the analyzeFit.R script to convert all running .fits 
-#to CSV
+#Author: Andrew Sivaprakasam
+#Last Updated: January 2024
+#Description: This code generates plots comparing different elevation estimates/smoothing windows
 
+########################### Helper Functions ###################################
 #Elevation Gain computing function (same function used to compute the metadata summary metrics)
 calculate_elevation_gain_smoothed <- function(elevation_plot, window_size = 40) {
   # Ensure elevation_plot is a numeric vector
@@ -122,7 +124,7 @@ smoothed_elevation
 
 
 setwd(fig_dir)
-save_plot_as_png(smoothed_elevation,file_name = 'elevation_compare_time.png', width = 12, height = 6,dpi = 300)
+save_plot_as_png(smoothed_elevation,file_name = 'elevation_compare_time.png', width = 10, height = 6,dpi = 300)
 
 
 setwd(cwd)

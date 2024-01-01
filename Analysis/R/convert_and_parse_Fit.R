@@ -1,32 +1,27 @@
-data_dir <- "/home/sivaprakasaman/Documents/Code/garmin_wrapped/Data/All_Fit_Files/all_fit";
-out_dir <- "/home/sivaprakasaman/Documents/Code/garmin_wrapped/Data/All_Fit_Files/fit_convert";
-meta_dir <- "/home/sivaprakasaman/Documents/Code/garmin_wrapped/Data/All_Fit_Files/all_meta";
+#Author: Andrew Sivaprakasam
+#Last Updated: January 2024
+#Description: This code converts all the running activity fit files in a specified folder to 
+#csv files, saving summary data into a separated file for analysis in process_MetaData.
 
-dir.create(file.path(out_dir), showWarnings = FALSE)
-dir.create(file.path(meta_dir), showWarnings = FALSE)
-setwd(data_dir)
-
-cwd <- getwd();
-setwd(data_dir);
-
-start_time <- Sys.time()
+############# Prerequisite Package Loading and Installing ######################
 ## Installing Dependencies & Importing Libraries
 list.of.packages <- c('ggplot2','remotes','dplyr','purrr','PerformanceAnalytics','nloptr','lubridate','revgeo','maps')
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages)
 
-#figure out where to install these
-library("trackeR")
-library("FITfileR")
-lapply(list.of.packages,library, character.only=TRUE)
-
-
+#Where you can install FITfileR and trackeR
 # if(!requireNamespace("remotes")) {
 #   install.packages("remotes")in
 # }
 # remotes::install_github("grimbough/FITfileR")
 # devtools::install_github("trackerproject/trackeR")
 
+#figure out where to install these
+library("trackeR")
+library("FITfileR")
+lapply(list.of.packages,library, character.only=TRUE)
+
+############################## HELPER FUNCTIONS ################################
 # Function to remove outliers from a numeric vector using Z-score
 remove_outliers <- function(x, threshold = 3) {
   x[is.infinite(x)] <- 0
@@ -149,7 +144,7 @@ read_fit <- function(fit_file) {
     print(paste('Activity Type: ', activity_type,'-- Skipping'))
     return(NULL)
   }
-    
+  
   
   Distance <- fit_allrecords$distance
   Distance <- Distance/1609.34; #to mi
@@ -157,7 +152,7 @@ read_fit <- function(fit_file) {
   distance_shift <- distance_shift[1:length(distance_shift)-1];
   datetime = fit_allrecords$timestamp[1];
   season_date = get_season(datetime);
-    
+  
   time_absolute <- as.POSIXct(fit_allrecords$timestamp);
   t_vect <- as.numeric(time_absolute);
   Time <- t_vect-min(t_vect);
@@ -170,7 +165,7 @@ read_fit <- function(fit_file) {
   #in mi/s
   Pace <- dx/dt;
   Pace <- 1/(Pace*60);
-
+  
   #converting cadence (only needed for non-biking)
   Cadence = (fit_allrecords$cadence+fit_allrecords$fractional_cadence)*2;
   
@@ -186,7 +181,7 @@ read_fit <- function(fit_file) {
   }
   
   Elevation = Elevation*3.28084; #to feet
-    
+  
   #other data (some of which might not be present)
   data_heads = c("heart_rate","step_length","stance_time_balance","vertical_ratio","stance_time","vertical_oscillation","power")
   other_data = search_and_extract_headers(fit_allrecords,data_heads);
@@ -321,8 +316,23 @@ get_season <- function(date) {
   }
 }
 
-##################################################################################
-# Example usage
+############################## CODE ############################################
+
+#Here are the directories you will need to change!!!!!
+data_dir <- "~/Documents/Code/garmin_wrapped/Data/All_Fit_Files/all_fit"; #Folder with all your fit files
+out_dir <- "~/Documents/Code/garmin_wrapped/Data/All_Fit_Files/fit_convert"; #Where you want the converted csv files to live
+meta_dir <- "~/Documents/Code/garmin_wrapped/Data/All_Fit_Files/all_meta"; #Where the metadata (summary files) will be saved
+
+
+dir.create(file.path(out_dir), showWarnings = FALSE)
+dir.create(file.path(meta_dir), showWarnings = FALSE)
+setwd(data_dir)
+
+cwd <- getwd();
+setwd(data_dir);
+
+start_time <- Sys.time()
+
 append_new = FALSE; #TRUE if you have an existing meta_df csv you just want to add to
 
 file_list = list.files();

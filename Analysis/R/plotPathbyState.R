@@ -1,11 +1,21 @@
+#Author: Andrew Sivaprakasam
+#Last Updated: January 2024
+#Description: This code plots all paths run, and can separate this by state.
+#Note: you must have already run the convert_and_parse_Fit script.
+
+############# Prerequisite Package Loading and Installing ######################
+## Installing Dependencies & Importing Libraries
+
 list.of.packages <- c('ggplot2', 'leaflet', 'ggmap','remotes','dplyr','purrr','PerformanceAnalytics','nloptr','lme4','lubridate','revgeo','maps')
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages)
 
 lapply(list.of.packages,library, character.only=TRUE)
 
+############## Code ###########################################################
 
-csv_dir <- "/home/sivaprakasaman/Documents/Code/garmin_wrapped/Data/All_Fit_Files/fit_convert"
+#folder with all the generated CSVs
+csv_dir <- "~/Documents/Code/garmin_wrapped/Data/All_Fit_Files/fit_convert"
 
 cwd <- getwd();
 setwd(csv_dir);
@@ -53,7 +63,7 @@ coords <- cbind(lon_list,lat_list)
 m <- coords %>%
   leaflet(  ) %>%
   addTiles() %>%
-  addPolylines(color = 'purple', weight=2)
+  addPolylines(color = 'black', weight=2)
 m
 
 
