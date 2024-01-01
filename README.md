@@ -12,11 +12,11 @@ I've written some scripts that replicate figures similar to those in Connect, as
 
 You can also add your own metrics/plots and even play around with per-second data only accessible at the `.fit` level. For example, I wanted to test the effect of a few different smoothing windows on elevation gain/loss (Total Ascent/Descent) metrics, and see how the distributions of these estimates compare with Garmin's own (likely more sophisticated) estimate. It appears a 40s smoothing window gets me pretty close to Garmin's estimate...but too small of a window and barometer noise can vastly overpredict ascent/descent on some runs.
 
-![elevation_compare_time.png](![Elevation_Plot](/Figures/elevation_compare_time.png))
+![Elevation Plot](Figures/elevation_compare_time.png)
 
 
 
-Or maybe, you've trained in 3 different states (varying in geography) and want to see if the general hilly-ness of your runs is comparable between the states. 
+
 
 
 
