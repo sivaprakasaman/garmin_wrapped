@@ -1,5 +1,11 @@
+#Author: Andrew Sivaprakasam
+#Last Updated: January 2024
+#Description: This code was just written to start analyzing the data that can be exported 
+#directly from Garmin Connect (a tedious scrolling process to get a limited csv).
+#I wouldn't spend much time in this script :)
 
-data_dir <- "/home/sivaprakasaman/Documents/Code/running_analytics/Data/Activity Logs/";
+
+data_dir <- "~/Documents/Code/garmin_wrapped/DEMO_Data/Activity_Log_fromGarmin/";
 cwd <- getwd();
 
 setwd(data_dir);
@@ -11,7 +17,7 @@ if(length(new.packages)) install.packages(new.packages)
 
 lapply(list.of.packages,library, character.only=TRUE)
 
-activities <- read.csv("All_Activities_AS_to11_22_23.csv")
+activities <- read.csv("Activities_to_12_24_23.csv")
 
 running_only <- subset(activities, Activity.Type %in% c("Running","Trail Running"))
 track_only <- subset(activities, Activity.Type %in% c("Track Running"));

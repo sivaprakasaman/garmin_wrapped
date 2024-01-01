@@ -9,7 +9,7 @@ list.of.packages <- c('ggplot2','remotes','dplyr','purrr','PerformanceAnalytics'
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages)
 
-#Where you can install FITfileR and trackeR
+#Where you can install FITfileR and trackeR. Uncomment this to install these packages.
 # if(!requireNamespace("remotes")) {
 #   install.packages("remotes")in
 # }

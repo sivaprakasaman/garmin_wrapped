@@ -2,6 +2,7 @@
 #Last Updated: January 2024
 #Description: This code plots all paths run, and can separate this by state.
 #Note: you must have already run the convert_and_parse_Fit script.
+#I've only included one activity .csv, so you will only see one path here.
 
 ############# Prerequisite Package Loading and Installing ######################
 ## Installing Dependencies & Importing Libraries
