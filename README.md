@@ -2,7 +2,7 @@
 
 ## Overview
 
-**Are you a data nerd or enthusiast looking to dive into your fitness analytics, but want to dive deeper than Garmin Connect or Strava allows?** Maybe you're dreaming up the next new running metric and want to pilot it on some of your previous runs. Or, maybe you just want to condense this data into a few nice figures-- Spotify Wrapped style. 
+**Are you a data nerd or enthusiast looking to dive into your fitness analytics, but want to dive deeper than Garmin Connect or Strava allows?** Maybe you're dreaming up the next new running metric and want to pilot it on some of your previous runs. Or, maybe you just want to condense this data into a few nice visualizations at the end of the year-- Spotify Wrapped style. 
 
 <img title="" src="Figures/year_dist_time.png" alt="year_dist_time.png" width="445"> <img title="" src="Figures/histo_dist_pace.png" alt="histo_dist_pace.png" width="355">
 
@@ -58,7 +58,7 @@ If you can handle some basic R programming (Python in the works!), this reposito
 
 3. Edit `data_dir`, `out_dir`, and `meta_dir` to match the folder structure on your compure. `data_dir` is where your fit files are, `out_dir` is where you want your converted `.csv`s to go, and `meta_dir` is where you want your per-run summary table of all runs to go.
 
-4. Run `convert_and_parse_Fit.R` . Don't be alarmed if most of the files print an error as you're parsing through. Most of those files are likely not running activities. It may take a while to run (~~2 hours for 40k fit files). Just make sure you eventually start seeing some `.csv` files in your `out_dir`. 
+4. Run `convert_and_parse_Fit.R` . Don't be alarmed if most of the files print an error as you're parsing through. Most of those files are likely not running activities. It may take a while to run (~2 hours for 40k fit files). Just make sure you eventually start seeing some `.csv` files in your `out_dir`. 
 
 5. Then, play around with either the summary data, or individual run data as you'd like. I have a few example scripts in `/Analysis/R/` that might help get you started.
 
@@ -66,4 +66,4 @@ If you can handle some basic R programming (Python in the works!), this reposito
 
 ## Acknowledgements
 
-Because I want this to be generally free to use, I recommend [Leaflet](https://rstudio.github.io/leaflet/) (free) for overlaying paths on a map over any package using Google Maps API (paid). Additionally, the creators of `FITfileR`, and `trackeR` deserve a lot of credit for putting  together `.fit` and `.txt`parsers so I didn't have to write my own. 
+Because I want this to be generally free to use, I recommend [Leaflet](https://rstudio.github.io/leaflet/) (free) for overlaying paths on a map over any package using Google Maps API (paid). Additionally, the creators of `FITfileR`, and `trackeR` deserve a lot of credit for putting  together `.fit` and `.txt` parsers so I didn't have to start from scratch. 
