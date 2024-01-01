@@ -66,4 +66,4 @@ If you can handle some basic R programming (Python in the works!), this reposito
 
 ## Acknowledgements
 
-Because I want this to be generally free to use, I recommend Leaflet (free) for overlaying paths on a map over any package using Google Maps API (paid). Additionally, the creators of `FITfileR`, and `trackeR` deserve a lot of credit for putting  together `.fit` and `.txt`parsers so I didn't have to write my own. 
+Because I want this to be generally free to use, I recommend [Leaflet](https://rstudio.github.io/leaflet/) (free) for overlaying paths on a map over any package using Google Maps API (paid). Additionally, the creators of `FITfileR`, and `trackeR` deserve a lot of credit for putting  together `.fit` and `.txt`parsers so I didn't have to write my own. 
