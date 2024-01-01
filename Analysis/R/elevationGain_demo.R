@@ -1,4 +1,3 @@
-
 #Assumes that you've already run the analyzeFit.R script to convert all running .fits 
 #to CSV
 
@@ -46,14 +45,14 @@ save_plot_as_png <- function(plot, file_name, width = 8, height = 7, dpi = 300) 
 #this can be used if you know the date of a particular run you want to compare
 #or, you can just specify a filename manually
 
-
-csv_dir <- "/home/sivaprakasaman/Documents/Code/running_analytics/Data/All_Fit_Files/fit_convert"
-csv_to_check <- "sivaprakasaman_12633906948.csv"
+csv_dir <- "/home/sivaprakasaman/Documents/Code/garmin_wrapped/Data/All_Fit_Files/fit_convert"
+fig_dir <- "/home/sivaprakasaman/Documents/Code/garmin_wrapped/Figures"
 run_date <- as.Date("2022-08-23")
 
 cwd <- getwd();
 setwd(csv_dir);
 
+file_list <- list.files()
 count <- 0;
 for(i in file_list){
   count <- count +1;
@@ -103,8 +102,6 @@ win40_str = paste0(sprintf('%.f',ascent_descent40[[1]]), ' ft');
 win80_str = paste0(sprintf('%.f',ascent_descent80[[1]]), ' ft');
 
 
-
-
 smoothed_elevation <- ggplot(all_smooth, aes(x =time/60))+
   geom_line(aes(y=no_win, color = "None"), size=1)+
   geom_text(aes(x=40, y= 215 + 500, label = 'Estimated Elevation Gain:'), color = 'black')+
@@ -123,7 +120,9 @@ smoothed_elevation <- ggplot(all_smooth, aes(x =time/60))+
 
 smoothed_elevation
 
-save_plot_as_png(smoothed_elevation,file_name = 'test.png',dpi = 300)
+
+setwd(fig_dir)
+save_plot_as_png(smoothed_elevation,file_name = 'elevation_compare_time.png', width = 12, height = 6,dpi = 300)
 
 
 setwd(cwd)

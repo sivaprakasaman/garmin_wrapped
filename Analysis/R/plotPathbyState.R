@@ -5,7 +5,7 @@ if(length(new.packages)) install.packages(new.packages)
 lapply(list.of.packages,library, character.only=TRUE)
 
 
-csv_dir <- "/home/sivaprakasaman/Documents/Code/running_analytics/Data/All_Fit_Files/fit_convert"
+csv_dir <- "/home/sivaprakasaman/Documents/Code/garmin_wrapped/Data/All_Fit_Files/fit_convert"
 
 cwd <- getwd();
 setwd(csv_dir);

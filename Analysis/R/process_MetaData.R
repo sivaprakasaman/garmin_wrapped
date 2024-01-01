@@ -17,7 +17,6 @@ activities <- read.csv("Activities_to_12_24_23.csv")
 activities <- subset(activities, Activity.Type %in% c("Running","Trail Running","Track Running"))
 
 dataset$date <- as.Date(dataset$date)
-
 activities$Date <- as.Date(activities$Date)
 activities$Total.Ascent <- as.numeric(activities$Total.Ascent)
 activities$Total.Descent <- -as.numeric(activities$Total.Descent)
