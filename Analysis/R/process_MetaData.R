@@ -35,17 +35,16 @@ save_plot_as_png <- function(plot, file_name, width = 8, height = 7, dpi = 300) 
 
 ############################# Code #############################################
 #Loading the Compiled metadata CSV. Change this directory to match where the full_meta_df.csv is
-data_dir <- "~/Documents/Code/garmin_wrapped/Data/All_Fit_Files/all_meta"
+data_dir <- "~/Documents/Code/garmin_wrapped/DEMO_Data/all_meta"
 
 #This was the summary data directly exported from the Activities tab from Garmin Connect
 #It's more limited than the meta_data csv we generate here, so I really only used this to compare Total Ascent/Descent
 #and crosscheck a few things. Most figures can be generated without this, just make sure you remove any calls to the activities
 #dataframe
-activity_dir <- "~/Documents/Code/garmin_wrapped/Data/Activity Logs/";
+activity_dir <- "~/Documents/Code/garmin_wrapped/DEMO_Data/Activity_Log_fromGarmin/";
 
 #This is where you want the figures to be saved
 fig_dir <- "~/Documents/Code/garmin_wrapped/Figures"
-
 
 cwd <- getwd();
 setwd(data_dir);
@@ -80,15 +79,17 @@ dataset$mean_vertical_ratio[ind_rm]= NA;
 dataset$mean_vertical_oscillation[ind_rm]= NA;
 dataset$mean_step_length[ind_rm]= NA;
 
-biomechs <- select(dataset, c('mean_heart_rate','mean_pace','mean_cadence','mean_elevation','mean_step_length','mean_vertical_ratio','mean_stance_time','mean_vertical_oscillation','mean_power'))
+dataset$mean_speed <- 1/dataset$mean_pace;
+
+biomechs <- select(dataset, c('mean_elevation','mean_heart_rate','mean_pace','mean_cadence','mean_step_length','mean_vertical_ratio','mean_stance_time','mean_vertical_oscillation','mean_power'))
 biomechs <- sapply(biomechs, as.numeric)
-colnames(biomechs) = c('Heart Rate','Pace','Cadence','Elevation','Step Length','Vertical Ratio','Stance Time','Vertical Oscillation','Power')
+colnames(biomechs) = c('Altitude','Heart Rate','Pace (min/mi)','Cadence','Step Length','Vertical Ratio','Stance Time','Vertical Oscillation','Power')
 
 # activities$avg_ft_mi = activities$Total.Ascent/as.numeric(activities$Distance);
 # activities$avg_ft_mi = as.numeric(activities$avg_ft_mi);
 
 start_date <- as.Date("2023-01-01")
-end_date <- as.Date("2023-12-24")
+end_date <- as.Date("2024-01-01")
 
 dataset_year <- dataset[dataset$date >= start_date & dataset$date <= end_date,]
 activities_year <- activities[activities$Date >= start_date & activities$Date <= end_date,]
@@ -163,7 +164,7 @@ col_time = "darkorchid"
 year_plot_time <- ggplot(year_time, aes(x = year, y = time)) +
   geom_bar(stat = "identity", fill = col_time, aes(alpha=time)) +
   geom_text(aes(label = sprintf("%.2f", time), y = time),  vjust = -.2, color = "gray40", size = 3.5) +
-  labs(title = paste0("Time Spent Running Each Year (Grand Total = ",sum(year_time$time)," hours)"),
+  labs(title = paste0("Time Spent Running Each Year (Grand Total = ",sum(as.integer(year_time$time))," hours)"),
        x = "Year",
        y = "Total Time (Hours)") +
   theme_pubclean()+
@@ -348,7 +349,7 @@ save_plot_as_png(elevation_compare_runavg,file_name = 'elevation_compare_state.p
 
 #Correlation Plots to see how biomechanics/gait measures correlate with heart rate and other things
 r_m <- cor(biomechs, use="complete.obs", method = "pearson");
-res1 <- cor.mtest(biomechs, conf.level = 0.95);
+res1 <- cor.mtest(biomechs, conf.level = 0.95, use="complete.obs");
 
 #plot correlation matrix/clustering
 png(height=800, width=800, file="biomech_nosig.png", type = "cairo")

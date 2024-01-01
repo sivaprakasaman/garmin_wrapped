@@ -15,12 +15,12 @@ lapply(list.of.packages,library, character.only=TRUE)
 ############## Code ###########################################################
 
 #folder with all the generated CSVs
-csv_dir <- "~/Documents/Code/garmin_wrapped/Data/All_Fit_Files/fit_convert"
+csv_dir <- "~/Documents/Code/garmin_wrapped/DEMO_Data/fit_convert"
 
 cwd <- getwd();
 setwd(csv_dir);
 
-show_all <- FALSE; #set true if not looking for a specific state
+show_all <- TRUE; #set true if not looking for a specific state
   
 state_toSearch <- "west virginia" #ignored when show_all is TRUE
 

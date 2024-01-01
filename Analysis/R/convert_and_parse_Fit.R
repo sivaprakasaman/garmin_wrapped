@@ -319,7 +319,7 @@ get_season <- function(date) {
 ############################## CODE ############################################
 
 #Here are the directories you will need to change!!!!!
-data_dir <- "~/Documents/Code/garmin_wrapped/Data/All_Fit_Files/all_fit"; #Folder with all your fit files
+data_dir <- "~/Documents/Code/garmin_wrapped/Data/All_Fit_Files/fit_data"; #Folder with all your fit files
 out_dir <- "~/Documents/Code/garmin_wrapped/Data/All_Fit_Files/fit_convert"; #Where you want the converted csv files to live
 meta_dir <- "~/Documents/Code/garmin_wrapped/Data/All_Fit_Files/all_meta"; #Where the metadata (summary files) will be saved
 

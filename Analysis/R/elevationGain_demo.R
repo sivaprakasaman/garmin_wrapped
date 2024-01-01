@@ -47,7 +47,7 @@ save_plot_as_png <- function(plot, file_name, width = 8, height = 7, dpi = 300) 
 #this can be used if you know the date of a particular run you want to compare
 #or, you can just specify a filename manually
 
-csv_dir <- "/home/sivaprakasaman/Documents/Code/garmin_wrapped/Data/All_Fit_Files/fit_convert"
+csv_dir <- "/home/sivaprakasaman/Documents/Code/garmin_wrapped/DEMO_Data/fit_convert"
 fig_dir <- "/home/sivaprakasaman/Documents/Code/garmin_wrapped/Figures"
 run_date <- as.Date("2022-08-23")
 
