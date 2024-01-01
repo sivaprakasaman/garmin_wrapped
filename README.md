@@ -10,9 +10,7 @@
 
 I've written some scripts that replicate figures similar to those in Connect, as well as a script to **plot paths in a manner similar to Strava** (Premium) heatmaps. 
 
-<img title="" src="Figures/pittsburgh_track.png" alt="pittsburgh_track.png" width="348">
-
-<img title="" src="Figures/charleston_path.png" alt="charleston_path.png" width="349">
+<img title="" src="Figures/pittsburgh_track.png" alt="pittsburgh_track.png" width="348"> <img title="" src="Figures/charleston_path.png" alt="charleston_path.png" width="349">
 
 You can also add your own metrics/plots and even play around with per-second data only accessible at the `.fit` level. **For example, I wanted to test the effect of a few different smoothing windows on elevation gain/loss** (Total Ascent/Descent) metrics, and see how the distributions of these estimates compare with Garmin's own (likely more sophisticated) estimate. It appears a 40s smoothing window gets me pretty close to Garmin's estimate...but too small of a window and barometer noise can vastly overpredict ascent/descent on some runs.
 
