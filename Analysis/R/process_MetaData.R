@@ -35,7 +35,7 @@ save_plot_as_png <- function(plot, file_name, width = 8, height = 7, dpi = 300) 
 
 ############################# Code #############################################
 #Loading the Compiled metadata CSV. Change this directory to match where the full_meta_df.csv is
-data_dir <- "~/Documents/Code/garmin_wrapped/DEMO_Data/all_meta"
+data_dir <- "~/Documents/Code/garmin_wrapped/Data/All_Fit_Files/all_meta"
 
 #This was the summary data directly exported from the Activities tab from Garmin Connect
 #It's more limited than the meta_data csv we generate here, so I really only used this to compare Total Ascent/Descent

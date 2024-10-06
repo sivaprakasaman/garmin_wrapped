@@ -16,7 +16,7 @@ lapply(list.of.packages,library, character.only=TRUE)
 ############## Code ###########################################################
 
 #folder with all the generated CSVs
-csv_dir <- "~/Documents/Code/garmin_wrapped/DEMO_Data/fit_convert"
+csv_dir <- "~/Documents/Code/garmin_wrapped/Data/All_Fit_Files/fit_convert"
 
 cwd <- getwd();
 setwd(csv_dir);
