@@ -117,8 +117,7 @@ smoothed_elevation <- ggplot(all_smooth, aes(x =time/60))+
   scale_color_manual(name = "Window Size", values = c("None" = "gray80", "10s" = "gray70", "40s" = "cornflowerblue", "80s" = "orchid"),breaks = c("None", "10s",  "40s","80s"))+
   labs(title = "Window Size Comparison",
      x = "Time (min)",
-     y = "Elevation (ft)")+
-  theme_pubr()
+     y = "Elevation (ft)")
 
 smoothed_elevation
 
