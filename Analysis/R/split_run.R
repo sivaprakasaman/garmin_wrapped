@@ -2,7 +2,8 @@
 #Last Updated: October 2024
 #Description: This code helps split runs into useful distances for more fine-grained
 # Analysis
-#References: Many functions here made quickly using chatGPT
+#References: Many functions here made quickly with chatGPT assistance (albeit with many corrections including 
+# distance conversion XD)
 
 ## Dependencies
 ## Installing Dependencies & Importing Libraries
@@ -12,6 +13,7 @@ if(length(new.packages)) install.packages(new.packages)
 
 library(lubridate)
 library(ggplot2)
+library(ggpubr)
 library(leaflet)
 library(dplyr)
 library(sf)
@@ -69,7 +71,7 @@ convert_time <- function(seconds) {
                 paste((seconds %% 3600) %/% 60, "min", seconds %% 60, "sec")))
 }
 
-fastest_specified_interval <- function(cumulative_distance, time, interval_str) {
+fastest_specified_interval <- function(data, interval_str) {
   # Extract the numeric value and unit from the input string
   interval_distance <- as.numeric(gsub("[^0-9.]", "", interval_str))
   distance_unit <- gsub("[0-9.]", "", interval_str)
@@ -89,6 +91,9 @@ fastest_specified_interval <- function(cumulative_distance, time, interval_str) 
   best_end <- NA
   all_times <- NA
   
+  cumulative_distance = fit_data$distance;
+  time = fit_data$time;
+
   # Loop through cumulative distances to find the fastest specified interval
   for (start in 1:length(cumulative_distance)) {
     # Calculate the end point for the specified interval
@@ -118,12 +123,15 @@ fastest_specified_interval <- function(cumulative_distance, time, interval_str) 
     result <- list(
       fastest_interval_distance = cumulative_distance[best_end] - cumulative_distance[best_start - 1],
       fastest_interval_time = min_time,
-      all_times = all_times
+      all_times = all_times,
+      df_split = data[best_start:best_end,]
     )
   } else {
     result <- list(
       fastest_interval_distance = NA,
-      fastest_interval_time = NA
+      fastest_interval_time = NA,
+      all_times = NA,
+      df_split = NA
     )
   }
   
@@ -256,17 +264,30 @@ pal <- colorNumeric(palette = "Dark2", domain = seg_plot$group)
 
 gradient_map <- leaflet(seg_plot) %>% 
   addTiles() %>% 
-  addPolylines(color = ~pal(group), weight = 5, opacity = 0.6)
+  addPolylines(color = ~pal(group), weight = 8, opacity = 0.5)
 
 gradient_map
-
 data = splits_result$table_num
+data$group = 1:nrow(data)
+data$timestring = splits_result$table_vis$Time
+
 data$Time = data$Time/60;
 ggplot(data,aes(x=Split)) + 
-  geom_col(aes(y=Time, color = pal(Split))) +  
-  labs(title = "Split Paces", x = paste("Split (units of ",split_distance_str,")"), y = "Pace (min/mi)")
+  geom_col(aes(y=Time, fill = as.factor(group))) +  
+  scale_fill_manual(values =  pal(data$group))+ 
+  geom_text(aes(label = timestring, y = Time),  vjust = -.2, color = "black", size = 3) +
+  labs(title = "Split Paces", x = paste("Split (units of ",split_distance_str,")"), y = "Time (min)")+
+  theme_pubclean()
+  
 
-fastest_10k = fastest_specified_interval(distance_vector, time_vector, "10km") #returns in seconds!!
+
+fastest_mi = fastest_specified_interval(fit_data, "1mi") #returns in seconds!!
+fastest_5k = fastest_specified_interval(fit_data, "5km") #returns in seconds!!
+fastest_10k = fastest_specified_interval(fit_data, "10km") #returns in seconds!!
+fastest_10mi = fastest_specified_interval(fit_data, "10mi");
+
+fastest_dists = c(fastest_mi$fastest_interval_time,fastest_5k$fastest_interval_time,fastest_10k$fastest_interval_time, fastest_10mi$fastest_interval_time);
+fastest_dists = convert_time(fastest_dists)
 
 split_request = c('1mi','5km','5mi','10km','15km','10mi','20km','13.1mi')
 all_splits = split_times_for_distances(distance_vector, time_vector,split_request)

@@ -42,7 +42,6 @@ data_dir <- "~/Documents/Code/garmin_wrapped/Data/All_Fit_Files/all_meta"
 #and crosscheck a few things. Most figures can be generated without this, just make sure you remove any calls to the activities
 #dataframe
 activity_dir <- "~/Documents/Code/garmin_wrapped/DEMO_Data/Activity_Log_fromGarmin/";
-
 #This is where you want the figures to be saved
 fig_dir <- "~/Documents/Code/garmin_wrapped/Figures"
 
@@ -89,7 +88,7 @@ colnames(biomechs) = c('Altitude','Heart Rate','Pace (min/mi)','Cadence','Step L
 # activities$avg_ft_mi = as.numeric(activities$avg_ft_mi);
 
 start_date <- as.Date("2023-01-01")
-end_date <- as.Date("2024-01-01")
+end_date <- as.Date("2024-10-08")
 
 dataset_year <- dataset[dataset$date >= start_date & dataset$date <= end_date,]
 activities_year <- activities[activities$Date >= start_date & activities$Date <= end_date,]
@@ -158,7 +157,7 @@ year_plot_dist <- ggplot(year_dist, aes(x = year, y = distance)) +
        y = "Total Distance (Mi)") +
   theme_pubclean()+
   theme(legend.position = "none")+
-  ylim(0,1050)
+  ylim(0,2000)
 
 col_time = "darkorchid"
 year_plot_time <- ggplot(year_time, aes(x = year, y = time)) +
