@@ -182,13 +182,19 @@ split_times_for_distances <- function(cumulative_distance, time, distance_string
 
 csv_dir <- "/home/sivaprakasaman/Documents/Code/garmin_wrapped/Data/All_Fit_Files/fit_convert"
 fig_dir <- "/home/sivaprakasaman/Documents/Code/garmin_wrapped/Figures"
-run_date <- as.Date("2023-11-18")
+run_date <- as.Date("2024-10-05")
 
 cwd <- getwd();
 setwd(csv_dir);
 
 file_list <- list.files()
+date_files <- NaN
+dist_vect <- NaN
+date_vect <- NaN
+  
 count <- 0;
+count_fi <- 0;
+
 for(i in file_list){
   count <- count +1;
   total_files <- length(file_list);
@@ -196,15 +202,17 @@ for(i in file_list){
   
   fit_data <- read.csv(i)
   date <- as.Date(fit_data$datetime[1])
-  
+  dist <- max(fit_data$distance)
   #probably could write this more efficiently
   tryCatch(
     expr = {
       if(date==run_date){
-        elevation_raw <- fit_data$elevation
-        time <- fit_data$time
-        distance <- fit_data$distance
-        break
+        count_fi <- count_fi+1
+        date_files[count_fi] = i;
+        dist_vect[count_fi]= dist;
+        date_vect[count_fi] = date;
+        
+        df_file <- data.frame(Date=date_vect, Distance=dist_vect, File=date_files);
       }
     },
     error = function(e){
@@ -212,12 +220,23 @@ for(i in file_list){
       # Do this if an error is caught...
       print("ERROR: Unable to parse CSV")
     })
+  
 }
 
+if(count_fi>1){
+  print(head(df_file))
+  s <- readline("Which file?")
+  s <- as.numeric(s)
+}
+
+fit_data <- read.csv(df_file$File[s])
+elevation_raw <- fit_data$elevation
+time <- fit_data$time
+distance <- fit_data$distance
 # Example usage
 distance_vector <- distance  # distances in miles
 time_vector <- time  # times in seconds
-split_distance_str <- "1mi"  # specify split distance
+split_distance_str <- "5km"  # specify split distance
 # Call the function
 splits_result <- calculate_splits_constant(distance_vector, time_vector, split_distance_str);
 head(splits_result$table,30)
