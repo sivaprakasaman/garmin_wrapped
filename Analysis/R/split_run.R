@@ -17,6 +17,7 @@ library(ggpubr)
 library(leaflet)
 library(dplyr)
 library(sf)
+library(gt)
 
 ## TODO ## 
 # - Script to split whole run into even, fixed segments (e.g. mi, km, 5km)
@@ -124,14 +125,18 @@ fastest_specified_interval <- function(data, interval_str) {
       fastest_interval_distance = cumulative_distance[best_end] - cumulative_distance[best_start - 1],
       fastest_interval_time = min_time,
       all_times = all_times,
-      df_split = data[best_start:best_end,]
+      df_split = data[best_start:best_end,],
+      start_ind = best_start,
+      end_ind = best_end
     )
   } else {
     result <- list(
       fastest_interval_distance = NA,
       fastest_interval_time = NA,
       all_times = NA,
-      df_split = NA
+      df_split = NA,
+      start_ind = NA,
+      end_ind = NA
     )
   }
   
@@ -244,7 +249,7 @@ distance <- fit_data$distance
 # Example usage
 distance_vector <- distance  # distances in miles
 time_vector <- time  # times in seconds
-split_distance_str <- "5km"  # specify split distance
+split_distance_str <- "1mi"  # specify split distance
 # Call the function
 splits_result <- calculate_splits_constant(distance_vector, time_vector, split_distance_str);
 head(splits_result$table,30)
@@ -265,6 +270,7 @@ pal <- colorNumeric(palette = "Dark2", domain = seg_plot$group)
 gradient_map <- leaflet(seg_plot) %>% 
   addTiles() %>% 
   addPolylines(color = ~pal(group), weight = 8, opacity = 0.5)
+  # addPolylines(color = "purple", weight = 4, opacity = 0.2)
 
 gradient_map
 data = splits_result$table_num
@@ -289,7 +295,29 @@ fastest_10mi = fastest_specified_interval(fit_data, "10mi");
 fastest_dists = c(fastest_mi$fastest_interval_time,fastest_5k$fastest_interval_time,fastest_10k$fastest_interval_time, fastest_10mi$fastest_interval_time);
 fastest_dists = convert_time(fastest_dists)
 
+fastest_dist_tab = data.frame(Distance=c('1mi','5km','10km','10mi'),Time=fastest_dists)
+
 split_request = c('1mi','5km','5mi','10km','15km','10mi','20km','13.1mi')
 all_splits = split_times_for_distances(distance_vector, time_vector,split_request)
 
 
+#Making a plot with fastest specified interval
+new_df <- fit_data
+new_df$group=0
+new_df$group[fastest_5k$start_ind:fastest_5k$end_ind]=1
+
+pal <- colorNumeric(palette = "Accent", domain = 0:5, reverse = TRUE) 
+
+new_seg_plot <- 
+  st_as_sf(new_df, coords = c("lon", "lat"), crs = "wgs84")  %>% 
+  mutate(seg_end = lead(geometry)) %>% 
+  rowwise() %>% 
+  mutate(geometry = st_union(geometry, seg_end) %>% st_cast("LINESTRING")) %>% 
+  ungroup() %>% 
+  select(!starts_with("seg"))
+
+new_map <- leaflet(new_seg_plot) %>% 
+  addTiles() %>% 
+  addPolylines(color = ~pal(group), weight = 8, opacity = 0.5)
+
+new_map
